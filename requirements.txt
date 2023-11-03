@@ -1,0 +1,6 @@
+flask
+requests
+Jetson.GPIO
+adafruit-circuitpython-lis3dh;python_version>="3.7"
+adafruit-circuitpython-pca9685;python_version>="3.7"
+adafruit-circuitpython-motor;python_version>="3.7"
