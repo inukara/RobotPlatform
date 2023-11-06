@@ -12,8 +12,12 @@ d = drive.Drive()
 def drive():
     req = json.loads(request.get_json())
     action = req['action']
+    try:
+        speed = int(req['speed'])
+    except ValueError:
+        abort(400)
     if action in d.speeds:
-        d.set_motor(action)
+        d.set_motor(action, speed)
     elif action == 'exit':
         d.exit()
     else:
