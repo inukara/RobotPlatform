@@ -13,7 +13,7 @@ def drive():
     req = json.loads(request.get_json())
     action = req['action']
     try:
-        speed = int(req['speed'])
+        speed = float(req['speed'])
         assert 0 <= speed <= 1
         assert action in d.speeds
     except ValueError:
