@@ -13,12 +13,12 @@ class Drive:
         
         self.speeds = {
             'stop': [0, 0, 0, 0],
-            'forward': [-self.motor_speed, -self.motor_speed, self.motor_speed, self.motor_speed],
-            'backward': [self.motor_speed, self.motor_speed, -self.motor_speed, -self.motor_speed],
-            'turn_cw': [self.motor_speed, self.motor_speed, self.motor_speed, self.motor_speed],
-            'turn_ccw': [-self.motor_speed, -self.motor_speed, -self.motor_speed, -self.motor_speed],
-            'left': [self.motor_speed*2, -self.motor_speed*2, -self.motor_speed*2, self.motor_speed*2],
-            'right': [-self.motor_speed*2, self.motor_speed*2, self.motor_speed*2, -self.motor_speed*2]
+            'forward': [-1, -1, 1, 1],
+            'backward': [1, 1, -1, -1],
+            'turn_cw': [1, 1, 1, 1],
+            'turn_ccw': [-1, -1, -1, -1],
+            'left': [1.5, -1.5, -1.5, 1.5],
+            'right': [-1.5, 1.5, 1.5, -1.5]
         }
 
         # MOTOR INIT
