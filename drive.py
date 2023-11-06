@@ -10,24 +10,16 @@ class Drive:
     def __init__(self):
         self.MOTOR_SAFE_DELAY = 0.01
         self.motor_speed = 0.1
-
-        self.STOP = 0
-        self.FORWARD = 1
-        self.BACKWARD = 2
-        self.TURN_CW = 3
-        self.TURN_CCW = 4
-        self.LEFT = 5
-        self.RIGHT = 6
         
-        self.speeds = [
-            [0, 0, 0, 0], # STOP
-            [-self.motor_speed, -self.motor_speed, self.motor_speed, self.motor_speed], # FORWARD
-            [self.motor_speed, self.motor_speed, -self.motor_speed, -self.motor_speed], # BACKWARD
-            [self.motor_speed, self.motor_speed, self.motor_speed, self.motor_speed], # TURN_CW
-            [-self.motor_speed, -self.motor_speed, -self.motor_speed, -self.motor_speed], # TURN_CCW
-            [self.motor_speed*2, -self.motor_speed*2, -self.motor_speed*2, self.motor_speed*2], # LEFT
-            [-self.motor_speed*2, self.motor_speed*2, self.motor_speed*2, -self.motor_speed*2] # RIGHT
-        ]
+        self.speeds = {
+            'stop': [0, 0, 0, 0],
+            'forward': [-self.motor_speed, -self.motor_speed, self.motor_speed, self.motor_speed],
+            'backward': [self.motor_speed, self.motor_speed, -self.motor_speed, -self.motor_speed],
+            'turn_cw': [self.motor_speed, self.motor_speed, self.motor_speed, self.motor_speed],
+            'turn_ccw': [-self.motor_speed, -self.motor_speed, -self.motor_speed, -self.motor_speed],
+            'left': [self.motor_speed*2, -self.motor_speed*2, -self.motor_speed*2, self.motor_speed*2],
+            'right': [-self.motor_speed*2, self.motor_speed*2, self.motor_speed*2, -self.motor_speed*2]
+        }
 
         # MOTOR INIT
         # MOTOR NUMBERING
@@ -47,7 +39,7 @@ class Drive:
         for i in range(4):
             self.motor[i].decay_mode = motor.SLOW_DECAY
 
-    def set_motor(self, robot_direction, speed_multiplier=1):
+    def set_motor(self, robot_direction: str, speed_multiplier=1):
         time.sleep(self.MOTOR_SAFE_DELAY)
         for i in range(self.MOTOR_COUNT):
             self.motor[i].throttle = self.speeds[robot_direction][i] * speed_multiplier
