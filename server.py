@@ -14,7 +14,11 @@ def drive():
     action = req['action']
     try:
         speed = int(req['speed'])
+        assert 0 <= speed <= 1
+        assert action in d.speeds
     except ValueError:
+        abort(400)
+    except AssertionError:
         abort(400)
     if action in d.speeds:
         d.set_motor(action, speed)
