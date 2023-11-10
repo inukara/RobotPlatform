@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, abort
+from flask import Flask, jsonify, request, abort, Response
 import drivesim
 import drive
 import json
@@ -9,7 +9,7 @@ d = drive.Drive()
 
 
 @app.route('/drive', methods=['POST'])
-def drive():
+def robot_drive():
     req = json.loads(request.get_json())
     action = req['action']
     try:
@@ -27,6 +27,16 @@ def drive():
     else:
         abort(400)
     return jsonify({'status': 'success'})
+
+
+@app.route('/lidar', methods=['POST'])
+def lidar():
+    req = json.loads(request.get_json())
+    front_distance = float(req['distance'])
+    if front_distance < 1.0:
+        d.set_motor("stop", 0.1)
+        print(front_distance, "front distance unsafe")
+    return Response(status=200)
 
 
 # below is the code for the car drive simulation
