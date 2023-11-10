@@ -8,12 +8,16 @@ sim = drivesim.DriveSim()
 d = drive.Drive()
 
 
+# action: forward, backward, left, right, turn_cw, turn_ccw, stop
+# speed: 0 <= speed <= 1
+# duration: motor run time in seconds
 @app.route('/drive', methods=['POST'])
 def robot_drive():
     req = json.loads(request.get_json())
     action = req['action']
     try:
         speed = float(req['speed'])
+        duration = float(req['duration'])
         assert 0 <= speed <= 1
         assert action in d.speeds
     except ValueError:
@@ -21,7 +25,7 @@ def robot_drive():
     except AssertionError:
         abort(400)
     if action in d.speeds:
-        d.set_motor(action, speed)
+        d.set_motor(action, speed, duration)
     elif action == 'exit':
         d.exit()
     else:
