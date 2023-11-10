@@ -1,6 +1,7 @@
 import time
 import busio
 from typing import List
+import threading
 
 from board import SCL, SDA
 from adafruit_pca9685 import PCA9685
@@ -39,10 +40,13 @@ class Drive:
         for i in range(4):
             self.motor[i].decay_mode = motor.SLOW_DECAY
 
-    def set_motor(self, robot_direction: str, speed_multiplier=1):
+    def set_motor(self, robot_direction: str, speed_multiplier=1, duration=2.0):
         time.sleep(self.MOTOR_SAFE_DELAY)
         for i in range(self.MOTOR_COUNT):
             self.motor[i].throttle = self.speeds[robot_direction][i] * speed_multiplier
+        if robot_direction != 'stop':
+            t=threading.Timer(duration, self.set_motor, args=['stop'])
+            t.start()
 
     def exit(self):
         self.set_motor(self.STOP)
