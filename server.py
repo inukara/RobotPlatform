@@ -37,7 +37,7 @@ def robot_drive():
 def lidar():
     req = json.loads(request.get_json())
     front_distance = float(req['distance'])
-    if front_distance < 1.0:
+    if front_distance < 1.0 and front_distance != 0:
         d.set_motor("stop", d.motor_speed)
         print(front_distance, "front distance unsafe")
     return Response(status=200)
