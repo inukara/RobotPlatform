@@ -34,7 +34,7 @@ def lidar():
     req = json.loads(request.get_json())
     front_distance = float(req['distance'])
     if front_distance < 1.0:
-        d.set_motor("stop", 0.1)
+        d.set_motor("stop", d.motor_speed)
         print(front_distance, "front distance unsafe")
     return Response(status=200)
 
