@@ -1,10 +1,10 @@
 from flask import Flask, jsonify, request, abort, Response
-import drivesim
+import drive_map
 import drive
 import json
 
 app = Flask(__name__)
-sim = drivesim.DriveSim()
+dm = drive_map.DriveMap()
 d = drive.Drive()
 
 
@@ -36,10 +36,16 @@ def robot_drive():
 @app.route('/lidar', methods=['POST'])
 def lidar():
     req = json.loads(request.get_json())
-    front_distance = float(req['distance'])
+    front_distance = float(req['front'])
+    right_distance = float(req['right'])
     if front_distance < 1.0 and front_distance != 0:
         d.set_motor("stop", d.motor_speed)
         print(front_distance, "front distance unsafe")
+        dm.done = True
+    elif right_distance < 1.0 and right_distance != 0:
+        d.set_motor("stop", d.motor_speed)
+        print(right_distance, "right distance unsafe")
+        dm.done = True
     return Response(status=200)
 
 
@@ -48,14 +54,11 @@ def lidar():
 @app.route('/start', methods=['POST'])
 def start():
     req = json.loads(request.get_json())
-    if req['id'] is None:
-        abort(400)
-    sim.start()
-    x = sim.x
-    y = sim.y
-    return jsonify({'status': 'success', 'x': x, 'y': y})
+    dm.done = False
+    dm.start()
+    return jsonify({'status': 'success'})
 
-
+'''
 # go to the next adjacent cell
 @app.route('/next', methods=['POST'])
 def next():
@@ -71,15 +74,13 @@ def next():
     x = sim.x
     y = sim.y
     return jsonify({'status': 'success', 'x': x, 'y': y})
-
+'''
 
 # get the current position of the car
 @app.route('/position')
 def get_position():
     arg = str(request.args.get('id'))
-    if arg is None:
-        abort(400)
-    x, y = sim.get_position()
+    x, y = dm.get_position()
     return jsonify({'x': x, 'y': y})
 
 
@@ -87,14 +88,12 @@ def get_position():
 @app.route('/map', methods=['POST'])
 def get_map():
     req = json.loads(request.get_json())
-    if req['id'] is None:
-        abort(400)
     m = json.loads(req['map'])
     print(m)
     print(type(m))
     if m is None:
         abort(400)
-    sim.map = m
+    dm.map = m
     return jsonify({'status': 'success'})
 
 
