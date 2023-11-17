@@ -51,9 +51,6 @@ if __name__ == '__main__':
             print(drive.get_position())
         elif s == 'start':
             print(drive.start())
-        elif s == 'next':
-            distance = int(input('Enter a distance: '))
-            print(drive.next(distance))
         elif s == 'map':
             # 여기에 맵 데이터 입력
             m = [[9, 0, 0, 0, 0],
