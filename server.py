@@ -66,7 +66,6 @@ def start():
 # get the current position of the car
 @app.route('/position')
 def get_position():
-    arg = str(request.args.get('id'))
     x, y = dm.get_position()
     return jsonify({'x': x, 'y': y})
 
