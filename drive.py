@@ -94,15 +94,17 @@ class Drive:
             self.encoder_count = [0, 0, 0, 0]
             time.sleep(self.EN_DELAY)
 
+    def set_speed(self, speed):
+        self.motor_speed = speed
 
-    def set_motor(self, robot_direction: str, speed_multiplier=0.1, duration=2.0, auto_stop=True):
+    def set_motor(self, robot_direction: str, duration=2.0, auto_stop=True):
         time.sleep(self.MOTOR_SAFE_DELAY)
         for i in range(self.MOTOR_COUNT):
-            self.motor[i].throttle = self.speeds[robot_direction][i] * speed_multiplier * self.motor_mult[i]
-        if robot_direction != 'stop' and auto_stop:
+            self.motor[i].throttle = self.speeds[robot_direction][i] * self.motor_speed * self.motor_mult[i]
+        if robot_direction != 'stop' and auto_stop and duration > 0:
             t=threading.Timer(duration, self.set_motor, args=['stop'])
             t.start()
 
     def exit(self):
-        self.set_motor(self.STOP)
+        self.set_motor('stop')
         self.pca.deinit()
