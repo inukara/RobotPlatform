@@ -58,28 +58,10 @@ def lidar():
 # start the car drive simulation
 @app.route('/start', methods=['POST'])
 def start():
-    req = json.loads(request.get_json())
     dm.done = False
     dm.start()
     return jsonify({'status': 'success'})
 
-'''
-# go to the next adjacent cell
-@app.route('/next', methods=['POST'])
-def next():
-    req = json.loads(request.get_json())
-    if req['id'] is None:
-        abort(400)
-    distance = req['distance']
-    x, y = -1, -1
-    if distance is None:
-        abort(400)
-    print(sim.map)
-    sim.next(distance)
-    x = sim.x
-    y = sim.y
-    return jsonify({'status': 'success', 'x': x, 'y': y})
-'''
 
 # get the current position of the car
 @app.route('/position')
