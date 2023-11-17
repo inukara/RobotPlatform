@@ -9,10 +9,17 @@ def callback(data):
     #rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
     #rospy.loginfo(len(data.ranges))
     #rospy.loginfo(data.ranges)
-    front = data.ranges[len(data.ranges)//2]
-    rospy.loginfo(front)
-    r = requests.post('http://localhost:1881/lidar', json=json.dumps({'distance': front}))
-    rospy.loginfo(r.status_code)
+    sides = []
+    for i in range(1, 4):
+        idx = len(data.ranges)//4*i
+        sides.append = min([d for d in data.ranges[idx-15:idx+15] if d > 0.0])
+        
+    rospy.loginfo(sides)
+    r = requests.post(
+        'http://localhost:1881/lidar',
+        json=json.dumps({'front': sides[1], 'right': sides[0], 'left': sides[2]}))
+    if r.status_code != 200:
+        rospy.loginfo(r.status_code)
     
 
 def listener():

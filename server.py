@@ -38,6 +38,7 @@ def lidar():
     req = json.loads(request.get_json())
     front_distance = float(req['front'])
     right_distance = float(req['right'])
+    left_distance = float(req['left'])
     if front_distance < 1.0 and front_distance != 0:
         d.set_motor("stop", d.motor_speed)
         print(front_distance, "front distance unsafe")
@@ -45,6 +46,10 @@ def lidar():
     elif right_distance < 1.0 and right_distance != 0:
         d.set_motor("stop", d.motor_speed)
         print(right_distance, "right distance unsafe")
+        dm.done = True
+    elif left_distance < 1.0 and left_distance != 0:
+        d.set_motor("stop", d.motor_speed)
+        print(left_distance, "left distance unsafe")
         dm.done = True
     return Response(status=200)
 
