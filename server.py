@@ -7,6 +7,10 @@ app = Flask(__name__)
 dm = drive_map.DriveMap()
 d = drive.Drive()
 
+import logging
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
+
 front_distance = 0
 right_distance = 0
 left_distance = 0
@@ -20,16 +24,18 @@ def robot_drive():
     req = json.loads(request.get_json())
     action = req['action']
     try:
+        duration = float(req['duration'])
+        assert action in d.speeds
         if req['speed'] is not None:
             speed = float(req['speed'])
             assert 0 <= speed <= 1
             d.set_speed(speed)
-        duration = float(req['duration'])
-        assert action in d.speeds
     except ValueError:
         abort(400)
     except AssertionError:
         abort(400)
+    except KeyError:
+        pass
     if action in d.speeds:
         d.set_motor(action, duration)
     elif action == 'exit':
@@ -47,17 +53,18 @@ def lidar():
     left_distance = float(req['left'])
     if front_distance < 1.0 and front_distance != 0:
         d.set_motor("stop")
-        print(front_distance, "front distance unsafe")
+        #print(front_distance, "front distance unsafe")
         dm.done = True
-    elif right_distance < 1.0 and right_distance != 0:
+    elif False: #right_distance < 1.0 and right_distance != 0:
         d.set_motor("stop")
         print(right_distance, "right distance unsafe")
         dm.done = True
-    elif left_distance < 1.0 and left_distance != 0:
+    elif False: #left_distance < 1.0 and left_distance != 0:
         d.set_motor("stop")
         print(left_distance, "left distance unsafe")
         dm.done = True
-    d.calibrate(right_distance)
+    #d.calibrate(right_distance)
+    dm.cur_dist = front_distance
     return Response(status=200)
 
 
