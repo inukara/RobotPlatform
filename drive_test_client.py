@@ -9,7 +9,6 @@ class DriveTestClient:
 
     def manual_drive_request(self, direction, speed = None):
         assert direction in ['forward', 'backward', 'left', 'right', 'turn_cw', 'turn_ccw', 'stop']
-        assert 0 <= float(speed) <= 1
         if speed is None:
             req_data = {'action': direction, 'duration': 2}
         else:
