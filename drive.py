@@ -12,10 +12,12 @@ class Drive:
     def __init__(self):
         self.MOTOR_SAFE_DELAY = 0.01
         self.EN_DELAY = 0.1
-        self.motor_speed = 0.1
+        self.motor_speed = 0.15
         self.init_wall_dist = 0
+        self.cur_action = 'stop'
+        self.prev_action = 'stop'
         
-        self.motor_mult = [1.05, 1, 1, 1]
+        self.motor_mult = [1, 1, 1, 1]
         self.speeds = {
             'stop': [0, 0, 0, 0],
             'forward': [-1, -1, 1, 1],
@@ -57,7 +59,7 @@ class Drive:
         for a, b in motor_channels:
             self.motor.append(motor.DCMotor(self.pca.channels[a], self.pca.channels[b]))
         for i in range(4):
-            self.motor[i].decay_mode = motor.FAST_DECAY
+            self.motor[i].decay_mode = motor.SLOW_DECAY
 
         #for i in range(0, 7, 2):
             #GPIO.add_event_detect(self.encoder_pins[i], GPIO.FALLING, callback=self.read_encoder)
@@ -66,17 +68,33 @@ class Drive:
         #thr.start()
     
     def calibrate(self, cur_wall_dist):
+        if self.cur_action != 'forward':     #forward only for now
+            return
+        if self.init_wall_dist == 0 or self.prev_action != self.cur_action:
+            self.init_wall_dist = cur_wall_dist
         diff = abs(cur_wall_dist - self.init_wall_dist)
-        if cur_wall_dist > self.init_wall_dist:
-            self.motor_mult[0] += diff / 10
-            self.motor_mult[1] += diff / 10
-            self.motor_mult[2] = 1
-            self.motor_mult[3] = 1
-        elif cur_wall_dist < self.init_wall_dist:
+        if diff > 0.5:
             self.motor_mult[0] = 1
             self.motor_mult[1] = 1
-            self.motor_mult[2] += diff / 10
-            self.motor_mult[3] += diff / 10
+            self.motor_mult[2] = 1
+            self.motor_mult[3] = 1
+            self.init_wall_dist = cur_wall_dist
+            self.set_motor(self.cur_action, 0, False)
+        if diff > 0.03:
+            if cur_wall_dist > self.init_wall_dist:
+                print("adjusting to right")
+                self.motor_mult[0] = 0.7
+                self.motor_mult[1] = 0.7
+                self.motor_mult[2] = 1
+                self.motor_mult[3] = 1
+            elif cur_wall_dist < self.init_wall_dist:
+                print("adjusting to left")
+                self.motor_mult[0] = 1
+                self.motor_mult[1] = 1
+                self.motor_mult[2] = 0.7
+                self.motor_mult[3] = 0.7
+            self.set_motor(self.cur_action, 0, False)
+        self.prev_action = self.cur_action
 
     def read_encoder(self, channel):
         for i in range(0, 7, 2):
@@ -98,9 +116,13 @@ class Drive:
         self.motor_speed = speed
 
     def set_motor(self, robot_direction: str, duration=2.0, auto_stop=True):
-        time.sleep(self.MOTOR_SAFE_DELAY)
+        self.cur_action = robot_direction
+        #time.sleep(self.MOTOR_SAFE_DELAY)
         for i in range(self.MOTOR_COUNT):
-            self.motor[i].throttle = self.speeds[robot_direction][i] * self.motor_speed * self.motor_mult[i]
+            speed = self.speeds[robot_direction][i] * self.motor_speed * self.motor_mult[i]
+            if speed > 1.0 or speed < -1.0:
+                print(speed)
+            self.motor[i].throttle = speed
         if robot_direction != 'stop' and auto_stop and duration > 0:
             t=threading.Timer(duration, self.set_motor, args=['stop'])
             t.start()
