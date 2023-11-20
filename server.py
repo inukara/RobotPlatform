@@ -63,7 +63,7 @@ def lidar():
         d.set_motor("stop")
         print(left_distance, "left distance unsafe")
         dm.done = True
-    #d.calibrate(right_distance)
+    d.calibrate(right_distance)
     dm.cur_dist = front_distance
     return Response(status=200)
 
@@ -73,7 +73,6 @@ def lidar():
 @app.route('/start', methods=['POST'])
 def start():
     dm.done = False
-    d.init_wall_dist = right_distance
     dm.start()
     return jsonify({'status': 'success'})
 
