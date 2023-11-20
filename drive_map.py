@@ -18,7 +18,7 @@ class DriveMap:
         self.cur_dist = 0.0
         self.TURN_WAIT = 2
         # medical = 2.5
-        self.MOTOR_TURN_DELAY = 1.35 # temporary
+        self.MOTOR_TURN_DELAY = 2.5 # temporary
         self.FIRST_TURN = True
 
     def start(self):
@@ -48,7 +48,12 @@ class DriveMap:
                 print(self.x, self.y)
                 self.next(1)
                 self.prev_dist = self.cur_dist
-        
+
+    def after_turn(self):
+        time.sleep(self.MOTOR_TURN_DELAY + self.TURN_WAIT)
+        self.drive.set_motor('forward', 0, False)
+        self.prev_dist = self.cur_dist
+
     def next(self, distance):
         for i in range(distance):
             self.map[self.x][self.y] = 0
@@ -60,7 +65,7 @@ class DriveMap:
                             self.FIRST_TURN = False
                             self.direction = self.UP
                             continue
-                        print("turning up")
+                        print("turning north")
                         self.drive.set_motor('stop')
                         time.sleep(self.TURN_WAIT)
                         if self.direction == self.LEFT:
@@ -69,11 +74,7 @@ class DriveMap:
                             self.drive.set_motor('turn_ccw', self.MOTOR_TURN_DELAY)
                         print("done turning")
                         self.direction = self.UP
-                        time.sleep(self.MOTOR_TURN_DELAY)
-                        self.drive.set_motor('forward', 0, False)
-                        #t = threading.Timer(self.MOTOR_TURN_DELAY, self.drive.set_motor, ['forward', 0, False])
-                        #t.start()
-                        self.prev_dist = self.cur_dist
+                        self.after_turn()
                     continue
             except IndexError:
                 pass
@@ -85,7 +86,7 @@ class DriveMap:
                             self.FIRST_TURN = False
                             self.direction = self.DOWN
                             continue
-                        print("turning down")
+                        print("turning south")
                         self.drive.set_motor('stop')
                         time.sleep(self.TURN_WAIT)
                         if self.direction == self.LEFT:
@@ -94,11 +95,7 @@ class DriveMap:
                             self.drive.set_motor('turn_cw', self.MOTOR_TURN_DELAY)
                         print("done turning")
                         self.direction = self.DOWN
-                        time.sleep(self.MOTOR_TURN_DELAY)
-                        self.drive.set_motor('forward', 0, False)
-                        #t = threading.Timer(self.MOTOR_TURN_DELAY, self.drive.set_motor, ['forward', 0, False])
-                        #t.start()
-                        self.prev_dist = self.cur_dist
+                        self.after_turn()
                     continue
             except IndexError:
                 pass
@@ -110,7 +107,7 @@ class DriveMap:
                             self.FIRST_TURN = False
                             self.direction = self.LEFT
                             continue
-                        print("turning left")
+                        print("turning west")
                         self.drive.set_motor('stop')
                         time.sleep(self.TURN_WAIT)
                         if self.direction == self.UP:
@@ -119,11 +116,7 @@ class DriveMap:
                             self.drive.set_motor('turn_cw', self.MOTOR_TURN_DELAY)
                         print("done turning")
                         self.direction = self.LEFT
-                        time.sleep(self.MOTOR_TURN_DELAY)
-                        self.drive.set_motor('forward', 0, False)
-                        #t = threading.Timer(self.MOTOR_TURN_DELAY, self.drive.set_motor, ['forward', 0, False])
-                        #t.start()
-                        self.prev_dist = self.cur_dist
+                        self.after_turn()
                     continue
             except IndexError:
                 pass
@@ -135,7 +128,7 @@ class DriveMap:
                             self.FIRST_TURN = False
                             self.direction = self.RIGHT
                             continue
-                        print("turning right")
+                        print("turning east")
                         self.drive.set_motor('stop')
                         time.sleep(self.TURN_WAIT)
                         if self.direction == self.UP:
@@ -144,11 +137,7 @@ class DriveMap:
                             self.drive.set_motor('turn_ccw', self.MOTOR_TURN_DELAY)
                         print("done turning")
                         self.direction = self.RIGHT
-                        time.sleep(self.MOTOR_TURN_DELAY)
-                        self.drive.set_motor('forward', 0, False)
-                        #t = threading.Timer(self.MOTOR_TURN_DELAY, self.drive.set_motor, ['forward', 0, False])
-                        #t.start()
-                        self.prev_dist = self.cur_dist
+                        self.after_turn()
                     continue
             except IndexError:
                 pass
