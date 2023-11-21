@@ -59,7 +59,7 @@ class Drive:
         for a, b in motor_channels:
             self.motor.append(motor.DCMotor(self.pca.channels[a], self.pca.channels[b]))
         for i in range(4):
-            self.motor[i].decay_mode = motor.SLOW_DECAY
+            self.motor[i].decay_mode = motor.FAST_DECAY
 
         #for i in range(0, 7, 2):
             #GPIO.add_event_detect(self.encoder_pins[i], GPIO.FALLING, callback=self.read_encoder)
@@ -115,17 +115,39 @@ class Drive:
     def set_speed(self, speed):
         self.motor_speed = speed
 
-    def set_motor(self, robot_direction: str, duration=2.0, auto_stop=True):
-        self.cur_action = robot_direction
-        #time.sleep(self.MOTOR_SAFE_DELAY)
+    def stop_motor_reverse_direction(self):
+        if self.cur_action == 'forward':
+            self.set_motor('backward', 0.1, True, False)
+        elif self.cur_action == 'backward':
+            self.set_motor('forward', 0.1, True, False)
+        elif self.cur_action == 'left':
+            self.set_motor('right', 0.1, True, False)
+        elif self.cur_action == 'right':
+            self.set_motor('left', 0.1, True, False)
+
+    def set_motor(self, robot_direction: str, duration=2.0, auto_stop=True, reverse=True):
+        print(robot_direction + ' ' + str(duration) + ' ' + str(auto_stop) + ' ' + str(reverse))
+        time.sleep(self.MOTOR_SAFE_DELAY)
         for i in range(self.MOTOR_COUNT):
             speed = self.speeds[robot_direction][i] * self.motor_speed * self.motor_mult[i]
-            if speed > 1.0 or speed < -1.0:
+            if speed > 1.0 or speed < -1.0: # debug for incorrect value
                 print(speed)
             self.motor[i].throttle = speed
+
+        if robot_direction == 'stop' and reverse:
+            # reset motor multiplier
+            print("reversing for stop")
+            print(self.cur_action)
+            self.init_wall_dist = 0
+            self.motor_mult = [1, 1, 1, 1]
+            self.stop_motor_reverse_direction()
+
+        # auto stop
         if robot_direction != 'stop' and auto_stop and duration > 0:
-            t=threading.Timer(duration, self.set_motor, args=['stop'])
+            t=threading.Timer(duration, self.set_motor, args=['stop', 0, False, False])
             t.start()
+
+        self.cur_action = robot_direction
 
     def exit(self):
         self.set_motor('stop')
