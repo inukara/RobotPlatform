@@ -22,12 +22,16 @@ class DriveMap:
         self.FIRST_TURN = True
 
     def start(self):
+        # variable reset
         for i in range(len(self.map)):
             for j in range(len(self.map[i])):
                 if self.map[i][j] == 8:
                     self.x = i
                     self.y = j
         self.done = False
+        self.direction = -1
+        self.FIRST_TURN = True
+        
         print(f"{self.x} {self.y} starting thread")
         thr = threading.Thread(target=self.drive_map)
         thr.start()
