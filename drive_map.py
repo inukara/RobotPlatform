@@ -18,8 +18,9 @@ class DriveMap:
         self.cur_dist = 0.0
         self.TURN_WAIT = 2
         # medical = 2.5
-        self.MOTOR_TURN_DELAY = 2.5 # temporary
+        self.MOTOR_TURN_DELAY = 3 # temporary
         self.FIRST_TURN = True
+        self.obstacle = False
 
     def start(self):
         # variable reset
@@ -29,15 +30,23 @@ class DriveMap:
                     self.x = i
                     self.y = j
         self.done = False
-        self.direction = -1
-        self.FIRST_TURN = True
+        self.prev_dist = 0.0
         
         print(f"{self.x} {self.y} starting thread")
         thr = threading.Thread(target=self.drive_map)
         thr.start()
     
+    def reset(self):
+        self.map = []
+        self.x = 0
+        self.y = 0
+        self.done = False
+        self.direction = -1
+        self.prev_dist = 0.0
+        self.cur_dist = 0.0
+        self.FIRST_TURN = True
+    
     def drive_map(self):
-        print(self.map)
         if self.prev_dist == 0.0:
             self.prev_dist = self.cur_dist
         self.drive.set_motor('forward', 0, False)
@@ -53,13 +62,13 @@ class DriveMap:
                 self.next(1)
                 self.prev_dist = self.cur_dist
 
-    def after_turn(self):
-        time.sleep(self.MOTOR_TURN_DELAY + self.TURN_WAIT)
+    def after_turn(self, delay: float):
+        time.sleep(delay)
         self.drive.set_motor('forward', 0, False)
         self.prev_dist = self.cur_dist
 
     def next(self, distance):
-        for i in range(distance):
+        for _ in range(distance):
             self.map[self.x][self.y] = 0
             try:
                 if self.map[self.x-1][self.y] == 9:
@@ -72,13 +81,17 @@ class DriveMap:
                         print("turning north")
                         self.drive.set_motor('stop')
                         time.sleep(self.TURN_WAIT)
+                        turn_time = self.MOTOR_TURN_DELAY + self.TURN_WAIT
                         if self.direction == self.LEFT:
                             self.drive.set_motor('turn_cw', self.MOTOR_TURN_DELAY)
                         elif self.direction == self.RIGHT:
                             self.drive.set_motor('turn_ccw', self.MOTOR_TURN_DELAY)
+                        elif self.direction == self.DOWN:
+                            self.drive.set_motor('turn_cw', self.MOTOR_TURN_DELAY*2)
+                            turn_time += self.MOTOR_TURN_DELAY
                         print("done turning")
                         self.direction = self.UP
-                        self.after_turn()
+                        self.after_turn(turn_time)
                     continue
             except IndexError:
                 pass
@@ -93,13 +106,17 @@ class DriveMap:
                         print("turning south")
                         self.drive.set_motor('stop')
                         time.sleep(self.TURN_WAIT)
+                        turn_time = self.MOTOR_TURN_DELAY + self.TURN_WAIT
                         if self.direction == self.LEFT:
                             self.drive.set_motor('turn_ccw', self.MOTOR_TURN_DELAY)
                         elif self.direction == self.RIGHT:
                             self.drive.set_motor('turn_cw', self.MOTOR_TURN_DELAY)
+                        elif self.direction == self.UP:
+                            self.drive.set_motor('turn_cw', self.MOTOR_TURN_DELAY*2)
+                            turn_time += self.MOTOR_TURN_DELAY
                         print("done turning")
                         self.direction = self.DOWN
-                        self.after_turn()
+                        self.after_turn(turn_time)
                     continue
             except IndexError:
                 pass
@@ -114,13 +131,17 @@ class DriveMap:
                         print("turning west")
                         self.drive.set_motor('stop')
                         time.sleep(self.TURN_WAIT)
+                        turn_time = self.MOTOR_TURN_DELAY + self.TURN_WAIT
                         if self.direction == self.UP:
                             self.drive.set_motor('turn_ccw', self.MOTOR_TURN_DELAY)
                         elif self.direction == self.DOWN:
                             self.drive.set_motor('turn_cw', self.MOTOR_TURN_DELAY)
+                        elif self.direction == self.RIGHT:
+                            self.drive.set_motor('turn_cw', self.MOTOR_TURN_DELAY*2)
+                            turn_time += self.MOTOR_TURN_DELAY
                         print("done turning")
                         self.direction = self.LEFT
-                        self.after_turn()
+                        self.after_turn(turn_time)
                     continue
             except IndexError:
                 pass
@@ -135,13 +156,17 @@ class DriveMap:
                         print("turning east")
                         self.drive.set_motor('stop')
                         time.sleep(self.TURN_WAIT)
+                        turn_time = self.MOTOR_TURN_DELAY + self.TURN_WAIT
                         if self.direction == self.UP:
                             self.drive.set_motor('turn_cw', self.MOTOR_TURN_DELAY)
                         elif self.direction == self.DOWN:
                             self.drive.set_motor('turn_ccw', self.MOTOR_TURN_DELAY)
+                        elif self.direction == self.LEFT:
+                            self.drive.set_motor('turn_cw', self.MOTOR_TURN_DELAY*2)
+                            turn_time += self.MOTOR_TURN_DELAY
                         print("done turning")
                         self.direction = self.RIGHT
-                        self.after_turn()
+                        self.after_turn(turn_time)
                     continue
             except IndexError:
                 pass
