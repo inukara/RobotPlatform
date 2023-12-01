@@ -51,19 +51,22 @@ def lidar():
     front_distance = float(req['front'])
     right_distance = float(req['right'])
     left_distance = float(req['left'])
-    if front_distance < 1.0 and front_distance != 0:
+    if front_distance < 0.7 and front_distance != 0:
         d.set_motor("stop")
         #print(front_distance, "front distance unsafe")
         dm.done = True
+        dm.obstacle = True
     elif False: #right_distance < 1.0 and right_distance != 0:
         d.set_motor("stop")
         print(right_distance, "right distance unsafe")
         dm.done = True
+        dm.obstacle = True
     elif False: #left_distance < 1.0 and left_distance != 0:
         d.set_motor("stop")
         print(left_distance, "left distance unsafe")
         dm.done = True
-    d.calibrate(right_distance)
+        dm.obstacle = True
+    #d.calibrate(right_distance)
     dm.cur_dist = front_distance
     return Response(status=200)
 
@@ -73,7 +76,14 @@ def lidar():
 @app.route('/start', methods=['POST'])
 def start():
     dm.done = False
+    dm.obstacle = False
     dm.start()
+    return jsonify({'status': 'success'})
+
+
+@app.route('/reset', methods=['POST'])
+def reset():
+    dm.reset()
     return jsonify({'status': 'success'})
 
 
@@ -84,13 +94,23 @@ def get_position():
     return jsonify({'x': x, 'y': y})
 
 
+@app.route('/obstacle', methods=['GET'])
+def get_obstacle():
+    if dm.obstacle:
+        return jsonify({'obstacle': dm.obstacle, 'map': dm.map})
+    else:
+        return jsonify({'obstacle': dm.obstacle, 'map': []})
+
+
 # get map data array in json format
 @app.route('/map', methods=['POST'])
 def get_map():
     req = json.loads(request.get_json())
     m = json.loads(req['map'])
-    print(m)
-    print(type(m))
+    for i in range(len(m)):
+        for j in range(len(m[i])):
+            print(m[i][j], end=' ')
+        print()
     if m is None:
         abort(400)
     dm.map = m
