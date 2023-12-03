@@ -71,6 +71,27 @@ def lidar():
     return Response(status=200)
 
 
+@app.route('/imu', methods=['POST'])
+def imu():
+    req = json.loads(request.get_json())
+    x = float(req['x'])
+    y = float(req['y'])
+    z = float(req['z'])
+    w = float(req['w'])
+    d.imu = [x, y, z, w]
+    print(d.imu)
+    return Response(status=200)
+
+
+@app.route('/degree', methods=['POST'])
+def degree():
+    req = json.loads(request.get_json())
+    degrees = float(req['degrees'])
+    direction = req['direction']
+    d.turn_degrees(degrees, direction)
+    return jsonify({'status': 'success'})
+
+
 # below is the code for the car drive simulation
 # start the car drive simulation
 @app.route('/start', methods=['POST'])
