@@ -10,6 +10,7 @@ from adafruit_motor import motor
 
 class Drive:
     def __init__(self):
+        self.imu = []
         self.MOTOR_SAFE_DELAY = 0.01
         self.EN_DELAY = 0.1
         self.motor_speed = 0.15
@@ -126,7 +127,7 @@ class Drive:
             self.set_motor('left', 0.1, True, False)
 
     def set_motor(self, robot_direction: str, duration=2.0, auto_stop=True, reverse=True):
-        print(robot_direction + ' ' + str(duration) + ' ' + str(auto_stop) + ' ' + str(reverse))
+        # print(robot_direction + ' ' + str(duration) + ' ' + str(auto_stop) + ' ' + str(reverse))
         time.sleep(self.MOTOR_SAFE_DELAY)
         for i in range(self.MOTOR_COUNT):
             speed = self.speeds[robot_direction][i] * self.motor_speed * self.motor_mult[i]
@@ -136,8 +137,8 @@ class Drive:
 
         if robot_direction == 'stop' and reverse:
             # reset motor multiplier
-            print("reversing for stop")
-            print(self.cur_action)
+            # print("reversing for stop")
+            # print(self.cur_action)
             self.init_wall_dist = 0
             self.motor_mult = [1, 1, 1, 1]
             self.stop_motor_reverse_direction()
@@ -148,6 +149,26 @@ class Drive:
             t.start()
 
         self.cur_action = robot_direction
+
+    def turn_degrees(self, degrees: float, direction: str):
+        prev = self.imu[2]
+        rotation_val = degrees / 180.0
+        rot_sum = 0.0
+        # imu value is between -1 and 1
+        # 180 degrees = 1
+        
+        if direction == 'cw':
+            self.set_motor('turn_cw', 0, False)
+        elif direction == 'ccw':
+            self.set_motor('turn_ccw', 0, False)
+        
+        time.sleep(0.06)
+        while rot_sum < rotation_val:
+            rot_sum += abs(self.imu[2] - prev)
+            prev = self.imu[2]
+            time.sleep(0.01)
+        self.set_motor('stop', 0, False)
+
 
     def exit(self):
         self.set_motor('stop')
