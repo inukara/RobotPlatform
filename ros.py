@@ -4,7 +4,7 @@ import rospy
 import requests
 import json
 import time
-from sensor_msgs.msg import LaserScan
+from sensor_msgs.msg import LaserScan, Imu
 
 def callback(data):
     #rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
@@ -24,13 +24,32 @@ def callback(data):
             rospy.loginfo(r.status_code)
     except Exception as e:
         pass
-        rospy.loginfo('Connection error')
-        time.sleep(1)
+        rospy.loginfo('Connection error, lidar')
+
+
+def imucallback(data):
+    rospy.loginfo(rospy.get_caller_id() + "I heard %s", data)
+    data = {
+        'x': data.orientation.x,
+        'y': data.orientation.y,
+        'z': data.orientation.z,
+        'w': data.orientation.w
+    }
+    try:
+        r = requests.post(
+            'http://localhost:1881/imu',
+            json=json.dumps(data))
+        if r.status_code != 200:
+            rospy.loginfo(r.status_code)
+    except Exception as e:
+        pass
+        rospy.loginfo('Connection error, imu')
     
 
 def listener():
     rospy.init_node('listener')
     rospy.Subscriber("/scan", LaserScan, callback)
+    rospy.Subscriber("/imu/data_throttle", Imu, imucallback)
     rospy.spin()
 
 if __name__ == '__main__':
