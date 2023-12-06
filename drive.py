@@ -13,7 +13,7 @@ class Drive:
         self.imu = []
         self.MOTOR_SAFE_DELAY = 0.01
         self.EN_DELAY = 0.1
-        self.motor_speed = 0.15
+        self.motor_speed = 0.2
         self.init_wall_dist = 0
         self.cur_action = 'stop'
         self.prev_action = 'stop'
@@ -41,8 +41,11 @@ class Drive:
         ]
         self.encoder_count = [0, 0, 0, 0]
 
-        #for pin in self.encoder_pins:
-            #GPIO.setup(pin, GPIO.IN)
+        GPIO.cleanup()
+        GPIO.setmode(GPIO.TEGRA_SOC)
+
+        for pin in self.encoder_pins:
+            GPIO.setup(pin, GPIO.IN)
 
         # MOTOR INIT
         # MOTOR NUMBERING
@@ -62,8 +65,8 @@ class Drive:
         for i in range(4):
             self.motor[i].decay_mode = motor.FAST_DECAY
 
-        #for i in range(0, 7, 2):
-            #GPIO.add_event_detect(self.encoder_pins[i], GPIO.FALLING, callback=self.read_encoder)
+        for i in range(0, 7, 2):
+            GPIO.add_event_detect(self.encoder_pins[i], GPIO.RISING, callback=self.read_encoder)
 
         #thr = threading.Thread(target=self.print_encoder)
         #thr.start()
@@ -104,13 +107,13 @@ class Drive:
                     self.encoder_count[i // 2] += 1
                 else:
                     self.encoder_count[i // 2] -= 1
+        print(self.encoder_count)
     
     def print_encoder(self):
         while True:
             for n in self.encoder_count:
                 print(n, end=' ')
             print()
-            self.encoder_count = [0, 0, 0, 0]
             time.sleep(self.EN_DELAY)
 
     def set_speed(self, speed):
@@ -152,11 +155,18 @@ class Drive:
 
     def turn_degrees(self, degrees: float, direction: str):
         prev = self.imu[2]
-        rotation_val = degrees / 180.0
+        if degrees == 90:
+            rotation_val = 0.67
+        elif degrees == 180:
+            rotation_val = 1.03
+        else:
+            rotation_val = 0
         rot_sum = 0.0
         # imu value is between -1 and 1
         # 180 degrees = 1
         
+        prev_speed = self.motor_speed
+        self.set_speed(0.15)
         if direction == 'cw':
             self.set_motor('turn_cw', 0, False)
         elif direction == 'ccw':
@@ -168,7 +178,24 @@ class Drive:
             prev = self.imu[2]
             time.sleep(0.01)
         self.set_motor('stop', 0, False)
-
+        self.set_speed(prev_speed)
+    
+    def turn_degrees_encoder(self, degrees: float, direction: str):
+        current_encoder = self.encoder_count[2]
+        if direction == 'cw':
+            self.set_motor('turn_cw', 0, False)
+        elif direction == 'ccw':
+            self.set_motor('turn_ccw', 0, False)
+        thr = threading.Thread(target=self.check_encoder, args=[degrees, current_encoder])
+        thr.start()
+    
+    def check_encoder(self, degrees: float, current_encoder: int):
+        rot_val = 800 * degrees / 360
+        while True:
+            if abs(self.encoder_count[3] - current_encoder) >= rot_val:
+                self.set_motor('stop', 0, False)
+                break
+            time.sleep(0.01) # put this delay or encoder value will lock here forever
 
     def exit(self):
         self.set_motor('stop')
