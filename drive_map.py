@@ -9,7 +9,10 @@ class DriveMap:
         self.y = 0
         self.drive = drive.Drive()
         self.done = False
-        self.direction = -1
+        self.INIT_DIRECTION = 0
+        # medical = 1
+        # h3m = 0
+        self.direction = self.INIT_DIRECTION
         self.UP = 0
         self.DOWN = 1
         self.LEFT = 2
@@ -19,9 +22,8 @@ class DriveMap:
         self.TURN_WAIT = 2
         # medical = 2.5
         self.MOTOR_TURN_DELAY = 3 # temporary
-        self.FIRST_TURN = True
         self.obstacle = False
-        self.obstacle_blocks = 5
+        self.obstacle_blocks = 0
 
     def start(self):
         # variable reset
@@ -34,6 +36,7 @@ class DriveMap:
         self.prev_dist = 0.0
         
         print(f"{self.x} {self.y} starting thread")
+        self.next(1)
         thr = threading.Thread(target=self.drive_map)
         thr.start()
     
@@ -42,15 +45,16 @@ class DriveMap:
         self.x = 0
         self.y = 0
         self.done = False
-        self.direction = -1
+        self.direction = self.INIT_DIRECTION
         self.prev_dist = 0.0
         self.cur_dist = 0.0
-        self.FIRST_TURN = True
+        self.obstacle = False
+        self.obstacle_blocks = 0
     
     def drive_map(self):
         if self.prev_dist == 0.0:
             self.prev_dist = self.cur_dist
-        self.drive.set_motor('forward', 0, False)
+        # self.drive.set_motor('forward', 0, False)
         while not self.done:
             #print(f"distance: {self.prev_dist} {self.cur_dist}")
             '''
@@ -77,10 +81,6 @@ class DriveMap:
                 if self.map[self.x-1][self.y] == 9:
                     self.x -= 1
                     if self.direction != self.UP:
-                        if self.FIRST_TURN:
-                            self.FIRST_TURN = False
-                            self.direction = self.UP
-                            continue
                         print("turning north")
                         self.drive.set_motor('stop')
                         time.sleep(self.TURN_WAIT)
@@ -102,10 +102,6 @@ class DriveMap:
                 if self.map[self.x+1][self.y] == 9:
                     self.x += 1
                     if self.direction != self.DOWN:
-                        if self.FIRST_TURN:
-                            self.FIRST_TURN = False
-                            self.direction = self.DOWN
-                            continue
                         print("turning south")
                         self.drive.set_motor('stop')
                         time.sleep(self.TURN_WAIT)
@@ -127,10 +123,6 @@ class DriveMap:
                 if self.map[self.x][self.y-1] == 9:
                     self.y -= 1
                     if self.direction != self.LEFT:
-                        if self.FIRST_TURN:
-                            self.FIRST_TURN = False
-                            self.direction = self.LEFT
-                            continue
                         print("turning west")
                         self.drive.set_motor('stop')
                         time.sleep(self.TURN_WAIT)
@@ -152,10 +144,6 @@ class DriveMap:
                 if self.map[self.x][self.y+1] == 9:
                     self.y += 1
                     if self.direction != self.RIGHT:
-                        if self.FIRST_TURN:
-                            self.FIRST_TURN = False
-                            self.direction = self.RIGHT
-                            continue
                         print("turning east")
                         self.drive.set_motor('stop')
                         time.sleep(self.TURN_WAIT)
