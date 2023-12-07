@@ -51,11 +51,12 @@ def lidar():
     front_distance = float(req['front'])
     right_distance = float(req['right'])
     left_distance = float(req['left'])
-    if front_distance < 0.7 and front_distance != 0:
+    if front_distance < 0.7 and front_distance != 0 and dm.obstacle_blocks == 0:
         d.set_motor("stop")
         #print(front_distance, "front distance unsafe")
         dm.done = True
         dm.obstacle = True
+        dm.obstacle_blocks = 5
     elif False: #right_distance < 1.0 and right_distance != 0:
         d.set_motor("stop")
         print(right_distance, "right distance unsafe")
@@ -89,6 +90,7 @@ def degree():
     degrees = float(req['degrees'])
     direction = req['direction']
     d.turn_degrees(degrees, direction)
+    #d.turn_degrees_encoder(degrees, direction)
     return jsonify({'status': 'success'})
 
 

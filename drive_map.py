@@ -21,6 +21,7 @@ class DriveMap:
         self.MOTOR_TURN_DELAY = 3 # temporary
         self.FIRST_TURN = True
         self.obstacle = False
+        self.obstacle_blocks = 5
 
     def start(self):
         # variable reset
@@ -61,6 +62,8 @@ class DriveMap:
                 print(self.x, self.y)
                 self.next(1)
                 self.prev_dist = self.cur_dist
+                if self.obstacle_blocks > 0:
+                    self.obstacle_blocks -= 1
 
     def after_turn(self, delay: float):
         time.sleep(delay)
