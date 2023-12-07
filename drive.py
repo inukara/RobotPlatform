@@ -107,7 +107,7 @@ class Drive:
                     self.encoder_count[i // 2] += 1
                 else:
                     self.encoder_count[i // 2] -= 1
-        print(self.encoder_count)
+        #print(self.encoder_count)
     
     def print_encoder(self):
         while True:
@@ -155,12 +155,23 @@ class Drive:
 
     def turn_degrees(self, degrees: float, direction: str):
         prev = self.imu[2]
+        '''
         if degrees == 90:
             rotation_val = 0.67
         elif degrees == 180:
             rotation_val = 1.03
         else:
             rotation_val = 0
+        '''
+        
+        if degrees == 180:
+            rotation_val = 1
+        elif degrees == 90:
+            if abs(self.imu[2]) < 0.3:
+                rotation_val = 0.68
+            else:
+                rotation_val = 0.3
+
         rot_sum = 0.0
         # imu value is between -1 and 1
         # 180 degrees = 1
