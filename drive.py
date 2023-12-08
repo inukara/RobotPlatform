@@ -19,7 +19,8 @@ class Drive:
         self.cur_action = 'stop'
         self.prev_action = 'stop'
         
-        self.motor_mult = [1, 1, 1, 1]
+        self.motor_default_mult = [1, 1, 1, 1]
+        self.motor_mult = self.motor_default_mult
         self.speeds = {
             'stop': [0, 0, 0, 0],
             'forward': [-1, -1, 1, 1],
@@ -137,7 +138,7 @@ class Drive:
             # print("reversing for stop")
             # print(self.cur_action)
             self.init_wall_dist = 0
-            self.motor_mult = [1, 1, 1, 1]
+            self.motor_mult = self.motor_default_mult
             await self.stop_motor_reverse_direction()
 
         # auto stop
@@ -147,36 +148,32 @@ class Drive:
 
         self.cur_action = robot_direction
 
-    async def turn_degrees(self, degrees, direction: str):
+    async def turn_degrees(self, degrees, direction: str, second_run = False):
         try:
             print(f"turning {degrees} degrees {direction}")
             global imu
             prev = imu[2]
-            '''
-            if degrees == 90:
-                rotation_val = 0.67
-            elif degrees == 180:
-                rotation_val = 1.03
-            else:
-                rotation_val = 0
-            '''
             
+            '''
             if degrees == 180:
                 if abs(imu[2]) < 0.8:
                     rotation_val = 1
                 else:
                     rotation_val = 0.6
-            elif degrees == 90:
-                if abs(imu[2]) < 0.8:
+            '''
+            if degrees == 90:
+                if second_run:
+                    rotation_val = 0.3
+                elif abs(imu[2]) < 0.1 or (abs(imu[2]) > 0.6 and abs(imu[2]) < 0.7):
                     rotation_val = 0.68
                 else:
-                    rotation_val = 0.3
+                    rotation_val = 0.28
             else:
                 print("invalid degrees")
                 return
             
-            print(rotation_val)
-
+            #print(rotation_val)
+            init_imu = imu[2]
             rot_sum = 0.0
             # imu value is between -1 and 1
             # 180 degrees = 1
@@ -191,6 +188,10 @@ class Drive:
             await asyncio.sleep(0.06)
             while rot_sum < rotation_val:
                 print(rot_sum)
+                '''
+                if (abs(imu[2]) > 0.98 and abs(init_imu) < 0.95) or (abs(imu[2]) < 0.02 and abs(init_imu) < 0.05) or ((abs(imu[2]) > 0.68 and abs(imu[2]) < 0.72) and not (abs(init_imu) > 0.65 and abs(init_imu) < 0.75)):
+                    break
+                '''
                 rot_sum += abs(imu[2] - prev)
                 prev = imu[2]
                 await asyncio.sleep(0.01)

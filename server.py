@@ -55,7 +55,7 @@ async def lidar():
         #print(front_distance, "front distance unsafe")
         dm.done = True
         dm.obstacle = True
-        dm.obstacle_blocks = 5
+        dm.obstacle_blocks = 0
     elif False: #right_distance < 1.0 and right_distance != 0:
         await d.set_motor("stop")
         print(right_distance, "right distance unsafe")

@@ -48,13 +48,13 @@ class DriveMap:
         self.obstacle_blocks = 0
     
     async def drive_map(self):
-        if self.prev_dist == 0.0:
+        if self.prev_dist == 0.0 and self.cur_dist != 0.0:
             self.prev_dist = self.cur_dist
         # self.drive.set_motor('forward', 0, False)
         while not self.done:
             #print(f"distance: {self.prev_dist} {self.cur_dist}")
 
-            if self.prev_dist < self.cur_dist:
+            if self.prev_dist + 0.10 < self.cur_dist:
                 print(f"distance error, prev:{self.prev_dist} < cur:{self.cur_dist} - not fixing")
                 # self.prev_dist = self.cur_dist
             
@@ -90,7 +90,8 @@ class DriveMap:
                     elif self.direction == self.RIGHT:
                         await self.drive.turn_degrees(90, 'ccw')
                     elif self.direction == self.DOWN:
-                        await self.drive.turn_degrees(180, 'cw')
+                        await self.drive.turn_degrees(90, 'cw')
+                        await self.drive.turn_degrees(90, 'cw', True)
                     print("done turning")
                     self.direction = self.UP
                     await self.after_turn()
@@ -109,7 +110,8 @@ class DriveMap:
                     elif self.direction == self.RIGHT:
                         await self.drive.turn_degrees(90, 'cw')
                     elif self.direction == self.UP:
-                        await self.drive.turn_degrees(180, 'cw')
+                        await self.drive.turn_degrees(90, 'cw')
+                        await self.drive.turn_degrees(90, 'cw', True)
                     print("done turning")
                     self.direction = self.DOWN
                     await self.after_turn()
@@ -128,7 +130,8 @@ class DriveMap:
                     elif self.direction == self.DOWN:
                         await self.drive.turn_degrees(90, 'cw')
                     elif self.direction == self.RIGHT:
-                        await self.drive.turn_degrees(180, 'cw')
+                        await self.drive.turn_degrees(90, 'cw')
+                        await self.drive.turn_degrees(90, 'cw', True)
                     print("done turning")
                     self.direction = self.LEFT
                     await self.after_turn()
@@ -147,7 +150,8 @@ class DriveMap:
                     elif self.direction == self.DOWN:
                         await self.drive.turn_degrees(90, 'ccw')
                     elif self.direction == self.LEFT:
-                        await self.drive.turn_degrees(180, 'cw')
+                        await self.drive.turn_degrees(90, 'cw')
+                        await self.drive.turn_degrees(90, 'cw', True)
                     print("done turning")
                     self.direction = self.RIGHT
                     await self.after_turn()
