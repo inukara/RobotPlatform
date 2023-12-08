@@ -13,13 +13,13 @@ def callback(data):
     sides = []
     for i in range(1, 4):
         idx = len(data.ranges)//4*i
-        sides.append(min([d for d in data.ranges[idx-15:idx+15] if d > 0.0]))
+        sides.append(min([d for d in data.ranges[idx-20:idx+20] if d > 0.0]))
         
     rospy.loginfo(sides)
     try:
         r = requests.post(
             'http://localhost:1881/lidar',
-            json=json.dumps({'front': sides[1], 'right': sides[0], 'left': sides[2]}))
+            json=json.dumps({'front': sides[1], 'right': sides[0], 'left': sides[2], 'front_point': data.ranges[len(data.ranges)//2]}))
         if r.status_code != 200:
             rospy.loginfo(r.status_code)
     except Exception as e:

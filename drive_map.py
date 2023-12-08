@@ -1,6 +1,5 @@
 import drive
-import threading
-import time
+import asyncio
 
 class DriveMap:
     def __init__(self):
@@ -19,13 +18,11 @@ class DriveMap:
         self.RIGHT = 3
         self.prev_dist = 0.0
         self.cur_dist = 0.0
-        self.TURN_WAIT = 2
-        # medical = 2.5
-        self.MOTOR_TURN_DELAY = 3 # temporary
+        self.TURN_WAIT = 1
         self.obstacle = False
         self.obstacle_blocks = 0
 
-    def start(self):
+    async def start(self):
         # variable reset
         for i in range(len(self.map)):
             for j in range(len(self.map[i])):
@@ -36,9 +33,8 @@ class DriveMap:
         self.prev_dist = 0.0
         
         print(f"{self.x} {self.y} starting thread")
-        self.next(1)
-        thr = threading.Thread(target=self.drive_map)
-        thr.start()
+        await self.next()
+        asyncio.create_task(self.drive_map())
     
     def reset(self):
         self.map = []
@@ -51,119 +47,116 @@ class DriveMap:
         self.obstacle = False
         self.obstacle_blocks = 0
     
-    def drive_map(self):
+    async def drive_map(self):
         if self.prev_dist == 0.0:
             self.prev_dist = self.cur_dist
         # self.drive.set_motor('forward', 0, False)
         while not self.done:
             #print(f"distance: {self.prev_dist} {self.cur_dist}")
-            '''
+
             if self.prev_dist < self.cur_dist:
-                print("prev_distance error, fixing")
-                self.prev_dist = self.cur_dist
-            '''
-            if self.prev_dist - self.cur_dist > 0.2:
+                print(f"distance error, prev:{self.prev_dist} < cur:{self.cur_dist} - not fixing")
+                # self.prev_dist = self.cur_dist
+            
+            if self.prev_dist - self.cur_dist > 0.15:
                 print(self.x, self.y)
-                self.next(1)
+                await self.next()
                 self.prev_dist = self.cur_dist
                 if self.obstacle_blocks > 0:
                     self.obstacle_blocks -= 1
+            if self.obstacle:
+                print("obstacle detected, stopping")
+                await self.drive.set_motor('stop')
+                self.obstacle = False
+                self.obstacle_blocks = 5
+                return
+            await asyncio.sleep(0.01)
 
-    def after_turn(self, delay: float):
-        time.sleep(delay)
-        self.drive.set_motor('forward', 0, False)
+    async def after_turn(self):
+        await self.drive.set_motor('forward', 0, False)
         self.prev_dist = self.cur_dist
 
-    def next(self, distance):
-        for _ in range(distance):
-            self.map[self.x][self.y] = 0
-            try:
-                if self.map[self.x-1][self.y] == 9:
-                    self.x -= 1
-                    if self.direction != self.UP:
-                        print("turning north")
-                        self.drive.set_motor('stop')
-                        time.sleep(self.TURN_WAIT)
-                        turn_time = self.MOTOR_TURN_DELAY + self.TURN_WAIT
-                        if self.direction == self.LEFT:
-                            self.drive.set_motor('turn_cw', self.MOTOR_TURN_DELAY)
-                        elif self.direction == self.RIGHT:
-                            self.drive.set_motor('turn_ccw', self.MOTOR_TURN_DELAY)
-                        elif self.direction == self.DOWN:
-                            self.drive.set_motor('turn_cw', self.MOTOR_TURN_DELAY*2)
-                            turn_time += self.MOTOR_TURN_DELAY
-                        print("done turning")
-                        self.direction = self.UP
-                        self.after_turn(turn_time)
-                    continue
-            except IndexError:
-                pass
-            try:
-                if self.map[self.x+1][self.y] == 9:
-                    self.x += 1
-                    if self.direction != self.DOWN:
-                        print("turning south")
-                        self.drive.set_motor('stop')
-                        time.sleep(self.TURN_WAIT)
-                        turn_time = self.MOTOR_TURN_DELAY + self.TURN_WAIT
-                        if self.direction == self.LEFT:
-                            self.drive.set_motor('turn_ccw', self.MOTOR_TURN_DELAY)
-                        elif self.direction == self.RIGHT:
-                            self.drive.set_motor('turn_cw', self.MOTOR_TURN_DELAY)
-                        elif self.direction == self.UP:
-                            self.drive.set_motor('turn_cw', self.MOTOR_TURN_DELAY*2)
-                            turn_time += self.MOTOR_TURN_DELAY
-                        print("done turning")
-                        self.direction = self.DOWN
-                        self.after_turn(turn_time)
-                    continue
-            except IndexError:
-                pass
-            try:
-                if self.map[self.x][self.y-1] == 9:
-                    self.y -= 1
-                    if self.direction != self.LEFT:
-                        print("turning west")
-                        self.drive.set_motor('stop')
-                        time.sleep(self.TURN_WAIT)
-                        turn_time = self.MOTOR_TURN_DELAY + self.TURN_WAIT
-                        if self.direction == self.UP:
-                            self.drive.set_motor('turn_ccw', self.MOTOR_TURN_DELAY)
-                        elif self.direction == self.DOWN:
-                            self.drive.set_motor('turn_cw', self.MOTOR_TURN_DELAY)
-                        elif self.direction == self.RIGHT:
-                            self.drive.set_motor('turn_cw', self.MOTOR_TURN_DELAY*2)
-                            turn_time += self.MOTOR_TURN_DELAY
-                        print("done turning")
-                        self.direction = self.LEFT
-                        self.after_turn(turn_time)
-                    continue
-            except IndexError:
-                pass
-            try:
-                if self.map[self.x][self.y+1] == 9:
-                    self.y += 1
-                    if self.direction != self.RIGHT:
-                        print("turning east")
-                        self.drive.set_motor('stop')
-                        time.sleep(self.TURN_WAIT)
-                        turn_time = self.MOTOR_TURN_DELAY + self.TURN_WAIT
-                        if self.direction == self.UP:
-                            self.drive.set_motor('turn_cw', self.MOTOR_TURN_DELAY)
-                        elif self.direction == self.DOWN:
-                            self.drive.set_motor('turn_ccw', self.MOTOR_TURN_DELAY)
-                        elif self.direction == self.LEFT:
-                            self.drive.set_motor('turn_cw', self.MOTOR_TURN_DELAY*2)
-                            turn_time += self.MOTOR_TURN_DELAY
-                        print("done turning")
-                        self.direction = self.RIGHT
-                        self.after_turn(turn_time)
-                    continue
-            except IndexError:
-                pass
-            print("stopping")
-            self.drive.set_motor('stop')
-            self.done = True
+    async def next(self):
+        self.map[self.x][self.y] = 0
+        try:
+            if self.map[self.x-1][self.y] == 9:
+                self.x -= 1
+                if self.direction != self.UP:
+                    print("turning north")
+                    await self.drive.set_motor('stop')
+                    await asyncio.sleep(self.TURN_WAIT)
+                    if self.direction == self.LEFT:
+                        await self.drive.turn_degrees(90, 'cw')
+                    elif self.direction == self.RIGHT:
+                        await self.drive.turn_degrees(90, 'ccw')
+                    elif self.direction == self.DOWN:
+                        await self.drive.turn_degrees(180, 'cw')
+                    print("done turning")
+                    self.direction = self.UP
+                    await self.after_turn()
+                return
+        except IndexError:
+            pass
+        try:
+            if self.map[self.x+1][self.y] == 9:
+                self.x += 1
+                if self.direction != self.DOWN:
+                    print("turning south")
+                    await self.drive.set_motor('stop')
+                    await asyncio.sleep(self.TURN_WAIT)
+                    if self.direction == self.LEFT:
+                        await self.drive.turn_degrees(90, 'ccw')
+                    elif self.direction == self.RIGHT:
+                        await self.drive.turn_degrees(90, 'cw')
+                    elif self.direction == self.UP:
+                        await self.drive.turn_degrees(180, 'cw')
+                    print("done turning")
+                    self.direction = self.DOWN
+                    await self.after_turn()
+                return
+        except IndexError:
+            pass
+        try:
+            if self.map[self.x][self.y-1] == 9:
+                self.y -= 1
+                if self.direction != self.LEFT:
+                    print("turning west")
+                    await self.drive.set_motor('stop')
+                    await asyncio.sleep(self.TURN_WAIT)
+                    if self.direction == self.UP:
+                        await self.drive.turn_degrees(90, 'ccw')
+                    elif self.direction == self.DOWN:
+                        await self.drive.turn_degrees(90, 'cw')
+                    elif self.direction == self.RIGHT:
+                        await self.drive.turn_degrees(180, 'cw')
+                    print("done turning")
+                    self.direction = self.LEFT
+                    await self.after_turn()
+                return
+        except IndexError:
+            pass
+        try:
+            if self.map[self.x][self.y+1] == 9:
+                self.y += 1
+                if self.direction != self.RIGHT:
+                    print("turning east")
+                    await self.drive.set_motor('stop')
+                    await asyncio.sleep(self.TURN_WAIT)
+                    if self.direction == self.UP:
+                        await self.drive.turn_degrees(90, 'cw')
+                    elif self.direction == self.DOWN:
+                        await self.drive.turn_degrees(90, 'ccw')
+                    elif self.direction == self.LEFT:
+                        await self.drive.turn_degrees(180, 'cw')
+                    print("done turning")
+                    self.direction = self.RIGHT
+                    await self.after_turn()
+                return
+        except IndexError:
+            pass
+        print("stopping")
+        await self.drive.set_motor('stop')
+        self.done = True
 
     def get_position(self):
         return self.x, self.y

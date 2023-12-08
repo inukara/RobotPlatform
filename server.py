@@ -1,27 +1,25 @@
-from flask import Flask, jsonify, request, abort, Response
+from quart import Quart, jsonify, request, abort, Response
 import drive_map
 import drive
 import json
 
-app = Flask(__name__)
+app = Quart(__name__)
 dm = drive_map.DriveMap()
 d = drive.Drive()
 
 import logging
-log = logging.getLogger('werkzeug')
-log.setLevel(logging.ERROR)
+logging.getLogger('hypercorn.access').disabled = True
 
 front_distance = 0
 right_distance = 0
 left_distance = 0
 
-
 # action: forward, backward, left, right, turn_cw, turn_ccw, stop
 # speed: 0 <= speed <= 1
 # duration: motor run time in seconds
 @app.route('/drive', methods=['POST'])
-def robot_drive():
-    req = json.loads(request.get_json())
+async def robot_drive():
+    req = json.loads(await request.get_json())
     action = req['action']
     try:
         duration = float(req['duration'])
@@ -37,88 +35,88 @@ def robot_drive():
     except KeyError:
         pass
     if action in d.speeds:
-        d.set_motor(action, duration)
+        await d.set_motor(action, duration)
     elif action == 'exit':
-        d.exit()
+        await d.exit()
     else:
         abort(400)
     return jsonify({'status': 'success'})
 
 
 @app.route('/lidar', methods=['POST'])
-def lidar():
-    req = json.loads(request.get_json())
+async def lidar():
+    req = json.loads(await request.get_json())
     front_distance = float(req['front'])
     right_distance = float(req['right'])
     left_distance = float(req['left'])
+    front_point = float(req['front_point'])
     if front_distance < 0.7 and front_distance != 0 and dm.obstacle_blocks == 0:
-        d.set_motor("stop")
+        await d.set_motor("stop")
         #print(front_distance, "front distance unsafe")
         dm.done = True
         dm.obstacle = True
         dm.obstacle_blocks = 5
     elif False: #right_distance < 1.0 and right_distance != 0:
-        d.set_motor("stop")
+        await d.set_motor("stop")
         print(right_distance, "right distance unsafe")
         dm.done = True
         dm.obstacle = True
     elif False: #left_distance < 1.0 and left_distance != 0:
-        d.set_motor("stop")
+        await d.set_motor("stop")
         print(left_distance, "left distance unsafe")
         dm.done = True
         dm.obstacle = True
     #d.calibrate(right_distance)
-    dm.cur_dist = front_distance
+    dm.cur_dist = front_point
     return Response(status=200)
 
 
 @app.route('/imu', methods=['POST'])
-def imu():
-    req = json.loads(request.get_json())
+async def imu():
+    req = json.loads(await request.get_json())
     x = float(req['x'])
     y = float(req['y'])
     z = float(req['z'])
     w = float(req['w'])
-    d.imu = [x, y, z, w]
-    print(d.imu)
+    drive.imu = [x, y, z, w]
+    #print(d.imu)
     return Response(status=200)
 
 
 @app.route('/degree', methods=['POST'])
-def degree():
-    req = json.loads(request.get_json())
+async def degree():
+    req = json.loads(await request.get_json())
     degrees = float(req['degrees'])
     direction = req['direction']
-    d.turn_degrees(degrees, direction)
-    #d.turn_degrees_encoder(degrees, direction)
+    await d.turn_degrees(degrees, direction)
     return jsonify({'status': 'success'})
 
 
 # below is the code for the car drive simulation
 # start the car drive simulation
 @app.route('/start', methods=['POST'])
-def start():
+async def start():
     dm.done = False
     dm.obstacle = False
-    dm.start()
+    await dm.start()
     return jsonify({'status': 'success'})
 
 
 @app.route('/reset', methods=['POST'])
-def reset():
+async def reset():
     dm.reset()
     return jsonify({'status': 'success'})
 
 
 # get the current position of the car
 @app.route('/position')
-def get_position():
+async def get_position():
     x, y = dm.get_position()
     return jsonify({'x': x, 'y': y})
 
 
 @app.route('/obstacle', methods=['GET'])
-def get_obstacle():
+async def get_obstacle():
     if dm.obstacle:
         return jsonify({'obstacle': dm.obstacle, 'map': dm.map})
     else:
@@ -127,8 +125,8 @@ def get_obstacle():
 
 # get map data array in json format
 @app.route('/map', methods=['POST'])
-def get_map():
-    req = json.loads(request.get_json())
+async def get_map():
+    req = json.loads(await request.get_json())
     m = json.loads(req['map'])
     for i in range(len(m)):
         for j in range(len(m[i])):
