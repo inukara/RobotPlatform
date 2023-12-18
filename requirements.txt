@@ -1,4 +1,4 @@
-flask
+quart
 requests
 Jetson.GPIO
 adafruit-circuitpython-lis3dh;python_version>="3.7"
