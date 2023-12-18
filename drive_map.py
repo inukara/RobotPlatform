@@ -72,10 +72,6 @@ class DriveMap:
                 return
             await asyncio.sleep(0.01)
 
-    async def after_turn(self):
-        await self.drive.set_motor('forward', 0, False)
-        self.prev_dist = self.cur_dist
-
     async def next(self):
         self.map[self.x][self.y] = 0
         try:
@@ -94,7 +90,8 @@ class DriveMap:
                         await self.drive.turn_degrees(90, 'cw', True)
                     print("done turning")
                     self.direction = self.UP
-                    await self.after_turn()
+                    await self.drive.set_motor('forward', 0, False)
+                    self.prev_dist = self.cur_dist
                 return
         except IndexError:
             pass
@@ -114,7 +111,8 @@ class DriveMap:
                         await self.drive.turn_degrees(90, 'cw', True)
                     print("done turning")
                     self.direction = self.DOWN
-                    await self.after_turn()
+                    await self.drive.set_motor('forward', 0, False)
+                    self.prev_dist = self.cur_dist
                 return
         except IndexError:
             pass
@@ -134,7 +132,8 @@ class DriveMap:
                         await self.drive.turn_degrees(90, 'cw', True)
                     print("done turning")
                     self.direction = self.LEFT
-                    await self.after_turn()
+                    await self.drive.set_motor('forward', 0, False)
+                    self.prev_dist = self.cur_dist
                 return
         except IndexError:
             pass
@@ -154,7 +153,8 @@ class DriveMap:
                         await self.drive.turn_degrees(90, 'cw', True)
                     print("done turning")
                     self.direction = self.RIGHT
-                    await self.after_turn()
+                    await self.drive.set_motor('forward', 0, False)
+                    self.prev_dist = self.cur_dist
                 return
         except IndexError:
             pass
