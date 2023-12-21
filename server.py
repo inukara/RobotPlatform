@@ -43,6 +43,7 @@ async def robot_drive():
     return jsonify({'status': 'success'})
 
 
+# get sensor information and stop robot if distance is not safe
 @app.route('/lidar', methods=['POST'])
 async def lidar():
     req = json.loads(await request.get_json())
@@ -83,6 +84,7 @@ async def imu():
     return Response(status=200)
 
 
+# rotate robot by degrees
 @app.route('/degree', methods=['POST'])
 async def degree():
     req = json.loads(await request.get_json())
@@ -102,6 +104,7 @@ async def start():
     return jsonify({'status': 'success'})
 
 
+# reset server's internal values for map driving
 @app.route('/reset', methods=['POST'])
 async def reset():
     dm.reset()
@@ -115,6 +118,7 @@ async def get_position():
     return jsonify({'x': x, 'y': y})
 
 
+# check if robot detected obstacle
 @app.route('/obstacle', methods=['GET'])
 async def get_obstacle():
     if dm.obstacle:
