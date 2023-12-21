@@ -11,6 +11,7 @@ class DriveMap:
         self.INIT_DIRECTION = 0
         # medical = 1
         # h3m = 0
+        # robot's direction in map
         self.direction = self.INIT_DIRECTION
         self.UP = 0
         self.DOWN = 1
@@ -24,6 +25,7 @@ class DriveMap:
 
     async def start(self):
         # variable reset
+        # find 8 as robot starting point
         for i in range(len(self.map)):
             for j in range(len(self.map[i])):
                 if self.map[i][j] == 8:
@@ -34,6 +36,7 @@ class DriveMap:
         
         print(f"{self.x} {self.y} starting thread")
         await self.next()
+        # run asynchronously since it contains while loop
         asyncio.create_task(self.drive_map())
     
     def reset(self):
@@ -57,7 +60,8 @@ class DriveMap:
             if self.prev_dist + 0.10 < self.cur_dist:
                 print(f"distance error, prev:{self.prev_dist} < cur:{self.cur_dist} - not fixing")
                 # self.prev_dist = self.cur_dist
-            
+
+            # calculate robot's front distance for map
             if self.prev_dist - self.cur_dist > 0.15:
                 print(self.x, self.y)
                 await self.next()
