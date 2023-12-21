@@ -72,7 +72,8 @@ class Drive:
 
         #thr = threading.Thread(target=self.print_encoder)
         #thr.start()
-    
+
+    # temp code for calibrating, unused
     async def calibrate(self, cur_wall_dist):
         if self.cur_action != 'forward':     #forward only for now
             return
@@ -102,6 +103,7 @@ class Drive:
             await self.set_motor(self.cur_action, 0, False)
         self.prev_action = self.cur_action
 
+    # read motor's encoders
     def read_encoder(self, channel):
         for i in range(0, 7, 2):
             if channel == self.encoder_pins[i]:
@@ -111,9 +113,11 @@ class Drive:
                     self.encoder_count[i // 2] -= 1
         #print(self.encoder_count)
 
+    # set robot's global speed
     def set_speed(self, speed):
         self.motor_speed = speed
 
+    # motor reversing for slipping when stopping
     async def stop_motor_reverse_direction(self):
         if self.cur_action == 'forward':
             await self.set_motor('backward', 0.1, True, False)
@@ -124,6 +128,7 @@ class Drive:
         elif self.cur_action == 'right':
             await self.set_motor('left', 0.1, True, False)
 
+    # set motor to move robot to selected direction
     async def set_motor(self, robot_direction: str, duration=2.0, auto_stop=True, reverse=True):
         # print(robot_direction + ' ' + str(duration) + ' ' + str(auto_stop) + ' ' + str(reverse))
         await asyncio.sleep(self.MOTOR_SAFE_DELAY)
@@ -148,6 +153,7 @@ class Drive:
 
         self.cur_action = robot_direction
 
+    # rotate robot by degrees
     async def turn_degrees(self, degrees, direction: str, second_run = False):
         try:
             print(f"turning {degrees} degrees {direction}")
