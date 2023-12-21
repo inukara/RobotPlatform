@@ -6,6 +6,7 @@ import json
 import time
 from sensor_msgs.msg import LaserScan, Imu
 
+# callback for lidar
 def callback(data):
     #rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
     #rospy.loginfo(len(data.ranges))
@@ -26,7 +27,7 @@ def callback(data):
         pass
         rospy.loginfo('Connection error, lidar')
 
-
+# callback for imu
 def imucallback(data):
     rospy.loginfo(rospy.get_caller_id() + "I heard %s", data)
     data = {
@@ -49,6 +50,7 @@ def imucallback(data):
 def listener():
     rospy.init_node('listener')
     rospy.Subscriber("/scan", LaserScan, callback)
+    # need to throttle imu topic with topic_tools
     rospy.Subscriber("/imu/data_throttle", Imu, imucallback)
     rospy.spin()
 
